@@ -22,6 +22,11 @@ def test_json():
 def test_success():
     validate(instance={"name" : "Eggs", "price" : 34.99}, schema=schema)
 
+def test_function_output_with_snapshot(snapshot):
+    snapshot.snapshot_dir = 'snapshots'  # This line is optional.
+    pierino = str(func(5))
+    snapshot.assert_match(pierino, 'foo_output.txt')
+
 #Lezione 2
 def func(x):
     return x+1
