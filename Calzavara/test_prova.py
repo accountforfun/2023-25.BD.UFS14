@@ -17,7 +17,7 @@ def bool_validate(instance, schema):
     except:
         return False
 def test_json():
-    assert bool_validate(instance={"name" : "Eggs", "price" : "Invalid"}, schema=schema) == True
+    assert bool_validate(instance={"name" : "Eggs", "price" : "Invalid"}, schema=schema) == False
 
 def test_success():
     validate(instance={"name" : "Eggs", "price" : 34.99}, schema=schema)
