@@ -3,11 +3,17 @@ run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
 on: [push]
 jobs:
   Explore-GitHub-Actions:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - run: python --version
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12' 
+            python-version: '3.12.6'
       - run: python --version
-
+      - run : uname -a
+      - name: Install dependencies
+        run:  |
+          python -m pip install --upgrade pip
+          pip install -U pytest
+          pip install -r requirments.txt
+      - run: pytest
