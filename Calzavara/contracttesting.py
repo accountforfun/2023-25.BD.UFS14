@@ -1,4 +1,4 @@
-print('hello world')
+
 from jsonschema import validate
 
 # A sample schema, like what we'd get from json.load()
