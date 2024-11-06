@@ -12,7 +12,7 @@ def MyHttpTrigger(req: func.HttpRequest) -> func.HttpResponse:
 
     name = req.params.get('name')
     cognome = req.params.get('cognome')
-    eta = req.params.get('cognome')
+    eta = req.params.get('eta')
     if not name:
         try:
             req_body = req.get_json()
