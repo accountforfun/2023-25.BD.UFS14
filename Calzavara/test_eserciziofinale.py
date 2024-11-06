@@ -47,7 +47,7 @@ def trasformazione(dati):
         
 def invio(data):
     try:
-        response = requests.post(f'https://zion.nextind.eu/api/v1/{device_token}/telemetry', json=data)
+        response = requests.post(f'/workspaces/2023-25.BD.UFS14/Calzavara/Estensimetro Esempio Letture.csv.csv', json=data)
         response.raise_for_status()  
         logging.info('Dati inviati correttamente a Zion.')
     except requests.exceptions.RequestException as e:
@@ -56,7 +56,7 @@ df = read_csv("C:/Users/FabioCalzavara/OneDrive - ITS Angelo Rizzoli/Desktop/Int
 def test_csv(snapshot):
     snapshot.snapshot_dir = 'snapshots'  # This line is optional.
     pierino = str(func(5))
-    snapshot.assert_match(pierino, 'foo_output.txt')
+    snapshot.assert_match(pierino, 'es_output.txt')
     
 schema = {"type" : "object",
     "properties" : {

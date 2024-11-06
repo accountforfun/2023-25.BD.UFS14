@@ -1,7 +1,50 @@
+import azure.functions as func
+import datetime
+import json
+import logging
+
+app = func.FunctionApp()
+
+@app.route(route="MyHttpTrigger", auth_level=func.AuthLevel.ANONYMOUS)
+def MyHttpTrigger(req: func.HttpRequest) -> func.HttpResponse:
+    logging.info('Python HTTP trigger function processed a request.')
+    logging.info('informazioni utili????')
+
+    name = req.params.get('name')
+    tante = []
+    
+    while(True):
+        parole_da_trovare = req.params.get()
+        if parole_da_trovare:
+            tante.append(parole_da_trovare)
+        else:
+            break
+    
+    if not name:
+        try:
+            req_body = req.get_json()
+        except ValueError:
+            pass
+        else:
+            name = req_body.get('name')
+    if not name:
+        return func.HttpResponse(f"Inserire il nome del farmaco che si vuole cercare")
+    if len(tante) == 0:
+        return func.HttpResponse(f"Inserire delle parole che si vogliono cercare")
+    if name:
+        farmaci(name,tante)
+        return func.HttpResponse(f"Hello, {name}. This HTTP triggered function executed successfully.")
+    else:
+        return func.HttpResponse(
+             "ciaoThis HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.",
+             status_code=200
+        )
+
+
 import requests
 from bs4 import BeautifulSoup
-'''
-def PDF(url):
+
+def PDF(url,tante):
     print("arrivato")
     print (url)
     response = requests.get(url)
@@ -18,22 +61,14 @@ def PDF(url):
         url_completo = 'https://cir-reports.cir-safety.org/' + provvisorio
         siti_pdf.append(url_completo)
         print(url_completo)
-    '''
-'''
     print("inserire il nome delle parole ce si vogliono cercare, quando finito digita exit")
-    parole_da_trovare = []
-    while True:
-        parole_sante = (input(str()))
-        if parole_sante == 'exit':
-            break
-        parole_da_trovare.append(parole_sante)
+    parole_da_trovare = tante
+    
     for i in siti_pdf:
         lettura(i, parole_da_trovare)
-    '''
-    #for i in siti_pdf:
-    #   lettura(i)
-'''def farmaci(farmaco):
-    with open("C:/Users/FabioCalzavara/OneDrive - ITS Angelo Rizzoli/Desktop/cir.html", "r", encoding="utf-8") as web:
+
+def farmaci(farmaco,tante):
+    with open("/workspaces/2023-25.BD.UFS14/Calzavara/MyProjFolder/cir.html", "r", encoding="utf-8") as web:
         content = web.read()
         #url = "https://cir-reports.cir-safety.org/"    # Analizza il contenuto HTML con BeautifulSoup
         #response = requests.get(url)
@@ -52,13 +87,13 @@ def PDF(url):
     else:
         print("successo")
         indice = lista.index(farmaco)
-        PDF(url[indice])
+        PDF(url[indice],tante)
         return
-'''
-#farmaco = str(input("inserisci il farmaco: "))
-#farmaci(farmaco)
-#url = "https://www.cir-safety.org/ingredients"  # URL del sito web
-#import PyPDF2
+
+
+
+url = "https://www.cir-safety.org/ingredients"  # URL del sito web
+import PyPDF2
 def lettura(url):
     response = requests.get(url)
     pierino = response.content
@@ -66,9 +101,3 @@ def lettura(url):
     # Salva il contenuto del PDF in un file locale
 #    with open("C:/Users/FabioCalzavara/OneDrive - ITS Angelo Rizzoli/Desktop/FINITI/Project Work/file.pdf", 'wb') as file:
 #        file.write(response.content)
-    
-lettura('https://cir-reports.cir-safety.org//view-attachment?id=94742a1a-c561-614f-9f89-14ce58abfc0b')
-def test_function_output_snapshot(snapshot):
-    snapshot.snapshot_dir = 'snapshots'  # This line is optional.
-    pierino = lettura('https://cir-reports.cir-safety.org//view-attachment?id=94742a1a-c561-614f-9f89-14ce58abfc0b')
-    snapshot.assert_match(pierino, 'pdf_output.txt')
