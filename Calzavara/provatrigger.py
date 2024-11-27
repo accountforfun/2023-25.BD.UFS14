@@ -1,24 +1,25 @@
 import azure.functions as func
-import datetime
-import json
 import logging
+import requests
+from bs4 import BeautifulSoup
+import PyPDF2
+
 
 app = func.FunctionApp()
 
 @app.route(route="MyHttpTrigger", auth_level=func.AuthLevel.ANONYMOUS)
 def MyHttpTrigger(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
-    logging.info('informazioni utili????')
-
     name = req.params.get('name')
     tante = []
     
-    while(True):
-        parole_da_trovare = req.params.get()
+    # Collect all search words
+    while True:
+        parole_da_trovare = req.params.get('parole')
         if parole_da_trovare:
             tante.append(parole_da_trovare)
         else:
-            break
+            break  # Stop when no more search words are provided
     
     if not name:
         try:
@@ -27,77 +28,79 @@ def MyHttpTrigger(req: func.HttpRequest) -> func.HttpResponse:
             pass
         else:
             name = req_body.get('name')
+    
     if not name:
         return func.HttpResponse(f"Inserire il nome del farmaco che si vuole cercare")
+    
     if len(tante) == 0:
         return func.HttpResponse(f"Inserire delle parole che si vogliono cercare")
+    
+    # Process the drug search and keyword search
     if name:
-        farmaci(name,tante)
+        farmaci(name, tante)
         return func.HttpResponse(f"Hello, {name}. This HTTP triggered function executed successfully.")
     else:
         return func.HttpResponse(
-             "ciaoThis HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.",
+             "ciao! This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.",
              status_code=200
         )
 
-
-import requests
-from bs4 import BeautifulSoup
-
-def PDF(url,tante):
-    print("arrivato")
-    print (url)
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
-    pdf = soup.find_all('a')
-    pdf.pop()
-    pdf.pop(0)
-    pdf.pop(0)
-    print(pdf)
-    siti_pdf=[]
-    for i in pdf:
-        provvisorio = i['href']
-        provvisorio = provvisorio[2:]
-        url_completo = 'https://cir-reports.cir-safety.org/' + provvisorio
-        siti_pdf.append(url_completo)
-        print(url_completo)
-    print("inserire il nome delle parole ce si vogliono cercare, quando finito digita exit")
-    parole_da_trovare = tante
-    
-    for i in siti_pdf:
-        lettura(i, parole_da_trovare)
-
-def farmaci(farmaco,tante):
+def farmaci(farmaco, tante):
     with open("/workspaces/2023-25.BD.UFS14/Calzavara/MyProjFolder/cir.html", "r", encoding="utf-8") as web:
         content = web.read()
-        #url = "https://cir-reports.cir-safety.org/"    # Analizza il contenuto HTML con BeautifulSoup
-        #response = requests.get(url)
-        #soup = BeautifulSoup(response.text, 'html.parser')
         soup = BeautifulSoup(content, 'html.parser')
-        siti = soup.find_all('a')
-        url=[]
-        for i in siti:
-            url_completo = 'https://cir-reports.cir-safety.org' + i['href']
-            url.append(url_completo)
-        lista = [lista.text for lista in siti]
-    #print(lista)
-    if farmaco not in lista:
-        print("il farmaco non è presente oppure il nome non è completo")
+        sites = soup.find_all('a')
+        urls = ['https://cir-reports.cir-safety.org' + i['href'] for i in sites]
+        names = [i.text for i in sites]
+
+    if farmaco not in names:
+        print("Farmaco non trovato.")
         return
     else:
-        print("successo")
-        indice = lista.index(farmaco)
-        PDF(url[indice],tante)
-        return
+        print("Farmaco trovato!")
+        index = names.index(farmaco)
+        PDF(urls[index], tante)
 
+def PDF(url, tante):
+    print("Fetching PDF from:", url)
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    pdf_links = soup.find_all('a')[2:]
+    
+    siti_pdf = []
+    for link in pdf_links:
+        pdf_url = 'https://cir-reports.cir-safety.org/' + link['href'][2:]
+        siti_pdf.append(pdf_url)
+        print(pdf_url)
 
+    for pdf_url in siti_pdf:
+        pdf_text = lettura(pdf_url)
+        if pdf_text:
+            if search_keywords_in_pdf(pdf_text, tante):
+                print(f"Keyword(s) found in the PDF: {pdf_url}")
+        else:
+            print(f"Failed to read PDF: {pdf_url}")
 
-url = "https://www.cir-safety.org/ingredients"  # URL del sito web
-import PyPDF2
 def lettura(url):
     response = requests.get(url)
-    pierino = response.content
-    return pierino
-    # Salva il contenuto del PDF in un file locale
-#    with open("C:/Users/FabioCalzavara/OneDrive - ITS Angelo Rizzoli/Desktop/FINITI/Project Work/file.pdf", 'wb') as file:
-#        file.write(response.content)
+    if response.status_code == 200:
+        pdf_file = response.content
+        try:
+            pdf_reader = PyPDF2.PdfReader(pdf_file)
+            text = ""
+            for page in pdf_reader.pages:
+                text += page.extract_text()
+            return text
+        except PyPDF2.errors.PdfReadError:
+            logging.error(f"Error reading PDF from {url}")
+            return None
+    else:
+        logging.error(f"Failed to fetch the PDF from {url}")
+        return None
+
+def search_keywords_in_pdf(pdf_text, keywords):
+    for keyword in keywords:
+        if keyword.lower() in pdf_text.lower():
+            print(f"Keyword '{keyword}' found in PDF!")
+            return True
+    return False
