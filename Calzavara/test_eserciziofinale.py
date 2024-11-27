@@ -34,12 +34,11 @@ def trasformazione(dati):
         trasformaL = i * AL + BL
         trasformaP = i ** 3 * AP + i ** 2 * BP + i * CP + DP
         timestamp = datetime.now().isoformat()
-    info = {
-        'Timestamp': timestamp,
-        'data': {
-            'TrasformaL': trasformaL,
-            'TrasformaP': trasformaP
-        }
+    info = {'Timestamp': 'string',
+    'data': {
+        'TrasformaL': 'number',
+        'TrasformaP': 'number'
+    }
     }
     
     invio(info)
@@ -47,29 +46,41 @@ def trasformazione(dati):
         
 def invio(data):
     try:
-        response = requests.post(f'/workspaces/2023-25.BD.UFS14/Calzavara/Estensimetro Esempio Letture.csv.csv', json=data)
+        response = requests.post(f'https://zion.nextind.eu/api/v1/{device_token}/telemetry', json=data)
         response.raise_for_status()  
         logging.info('Dati inviati correttamente a Zion.')
     except requests.exceptions.RequestException as e:
         logging.error(f'Errore nell\'invio dei dati: {e}')
-df = read_csv("C:/Users/FabioCalzavara/OneDrive - ITS Angelo Rizzoli/Desktop/Internet of Things/Estensimetro Esempio Letture.csv.csv")
+
 def test_csv(snapshot):
-    snapshot.snapshot_dir = 'snapshots'  # This line is optional.
-    pierino = str(func(5))
+    df = read_csv("/workspaces/2023-25.BD.UFS14/Calzavara/Estensimetro Esempio Letture.csv.csv")
+    snapshot.snapshot_dir = 'snapshots'  
+    pierino = str(df)
     snapshot.assert_match(pierino, 'es_output.txt')
     
-schema = {"type" : "object",
-    "properties" : {
-        "price" : {"type" : "number"},
-        "name" : {"type" : "string"},
-    },}
-
-def test_json(schema):
-    instance = trasformazione(df)
+schema = {
+    'Timestamp': 'object',
+    'data': {
+            'TrasformaL': 'float',
+            'TrasformaP': 'float'
+        }
+    }
+def bool_validate(instance, schema):
     try:
         validate(instance = instance, schema = schema)
         return True
     except:
         return False
+def test_json():
+    assert bool_validate(instance=trasformazione(df), schema=schema) == True
+
+
+def func(x):
+    return x+1
+
+def test_answer():
+    assert func(3) == 4
+
+df = read_csv("/workspaces/2023-25.BD.UFS14/Calzavara/Estensimetro Esempio Letture.csv.csv")
 if df is not None:
     trasformazione(df)

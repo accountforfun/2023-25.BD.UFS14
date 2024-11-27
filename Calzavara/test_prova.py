@@ -23,7 +23,7 @@ def test_success():
     validate(instance={"name" : "Eggs", "price" : 34.99}, schema=schema)
 
 def test_function_output_with_snapshot(snapshot):
-    snapshot.snapshot_dir = 'snapshots'  # This line is optional.
+    snapshot.snapshot_dir = 'snapshots' 
     pierino = str(func(5))
     snapshot.assert_match(pierino, 'foo_output.txt')
 
