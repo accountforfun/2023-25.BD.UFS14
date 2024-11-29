@@ -1,34 +1,66 @@
 import azure.functions as func
-import datetime
-import json
+import math
+import requests
 import logging
+
+
+def cal_distanza(lat1, lon1, lat2, lon2):
+    R = 6371.0
+    lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
+    
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    
+    a = math.sin(dlat / 2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    
+    distanza = R * c
+    return distanza
+
+
+def coordinate_reali(indirizzo):
+    url = f'https://nominatim.openstreetmap.org/search?q={indirizzo}&format=json&addressdetails=1'
+    response = requests.get(url)
+    data = response.json()
+
+    if data:
+       
+        lat = float(data[0]['lat'])
+        lon = float(data[0]['lon'])
+        return lat, lon
+    else:
+        return None, None
 
 app = func.FunctionApp()
 
 @app.route(route="MyHttpTrigger", auth_level=func.AuthLevel.ANONYMOUS)
 def MyHttpTrigger(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
-    logging.info('informazioni utili????')
 
-    name = req.params.get('name')
-    cognome = req.params.get('cognome')
-    eta = req.params.get('eta')
-    if not name:
-        try:
-            req_body = req.get_json()
-        except ValueError:
-            pass
-        else:
-            name = req_body.get('name')
+    
+    indirizzo1 = req.params.get('indirizzo1')
+    indirizzo2 = req.params.get('indirizzo2')
 
-    if name:
-        if cognome:
-            if eta:
-                return func.HttpResponse('topo gigio')
-            return func.HttpResponse(f"Hello, {name} {cognome}. This HTTP triggered function executed successfully.")
-        return func.HttpResponse(f"Hello, {name}. This HTTP triggered function executed successfully.")
+    if indirizzo1 and indirizzo2:
+        
+        lat1, lon1 = coordinate_reali(indirizzo1)
+        lat2, lon2 = coordinate_reali(indirizzo2)
+
+        if lat1 is None or lat2 is None:
+            return func.HttpResponse(
+                "Errore nella geocodifica degli indirizzi. Assicurati che gli indirizzi siano corretti.",
+                status_code=400
+            )
+        
+        
+        distanza = cal_distanza(lat1, lon1, lat2, lon2)
+        
+        return func.HttpResponse(
+            f"La distanza tra '{indirizzo1}' e '{indirizzo2}' è di {distanza:.2f} km.",
+            status_code=200
+        )
     else:
         return func.HttpResponse(
-             "ciaoThis HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.",
-             status_code=200
+            "Per favore, passa i parametri 'indirizzo1' e 'indirizzo2' nella query string.",
+            status_code=400
         )
