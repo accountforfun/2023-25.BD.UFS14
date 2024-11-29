@@ -3,10 +3,10 @@ import math
 import requests
 import logging
 
-
+#indirizzo1=Piazza+del+Duomo,+Milano,+Italia&indirizzo2=Colosseo,+Roma,+Italia
 def cal_distanza(lat1, lon1, lat2, lon2):
     R = 6371.0
-    lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
+    lat1, lon1, lat2, lon2 = 45.4641, 9.1916, 41.8902, 12.4922 #map(math.radians, [lat1, lon1, lat2, lon2])
     
     dlat = lat2 - lat1
     dlon = lon2 - lon1
@@ -18,18 +18,18 @@ def cal_distanza(lat1, lon1, lat2, lon2):
     return distanza
 
 
-def coordinate_reali(indirizzo):
-    url = f'https://nominatim.openstreetmap.org/search?q={indirizzo}&format=json&addressdetails=1'
-    response = requests.get(url)
-    data = response.json()
+#def coordinate_reali(indirizzo):
+    #url = f'https://nominatim.openstreetmap.org/search?q={indirizzo}&format=json&addressdetails=1'
+    #response = requests.get(url)
+    #data = response.json()
 
-    if data:
+    #if data:
        
-        lat = float(data[0]['lat'])
-        lon = float(data[0]['lon'])
-        return lat, lon
-    else:
-        return None, None
+    #    lat = float(data[0]['lat'])
+    #    lon = float(data[0]['lon'])
+    #    return lat, lon
+    #else:
+    #    return None, None
 
 app = func.FunctionApp()
 
@@ -43,8 +43,8 @@ def MyHttpTrigger(req: func.HttpRequest) -> func.HttpResponse:
 
     if indirizzo1 and indirizzo2:
         
-        lat1, lon1 = coordinate_reali(indirizzo1)
-        lat2, lon2 = coordinate_reali(indirizzo2)
+        lat1, lon1 = 0,0#coordinate_reali(indirizzo1)
+        lat2, lon2 = 0,0#coordinate_reali(indirizzo2)
 
         if lat1 is None or lat2 is None:
             return func.HttpResponse(
