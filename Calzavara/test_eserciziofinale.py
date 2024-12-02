@@ -53,7 +53,7 @@ def invio(data):
         logging.error(f'Errore nell\'invio dei dati: {e}')
 
 def test_csv(snapshot):
-    df = read_csv("/workspaces/2023-25.BD.UFS14/Calzavara/Estensimetro Esempio Letture.csv.csv")
+    df = read_csv("/workspaces/2023-25.BD.UFS14/Estensimetro Esempio Letture.csv")
     snapshot.snapshot_dir = 'snapshots'  
     pierino = str(df)
     snapshot.assert_match(pierino, 'es_output.txt')
