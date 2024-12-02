@@ -81,6 +81,6 @@ def func(x):
 def test_answer():
     assert func(3) == 4
 
-df = read_csv("/workspaces/2023-25.BD.UFS14/Calzavara/Estensimetro Esempio Letture.csv.csv")
+df = read_csv("/workspaces/2023-25.BD.UFS14/Calzavara/Estensimetro Esempio Letture.csv")
 if df is not None:
     trasformazione(df)
